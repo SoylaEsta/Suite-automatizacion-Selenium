@@ -1,0 +1,15 @@
+# Ignore carpeta de dependencias de Maven
+/target/
+
+# Archivos temporales
+*.log
+*.class
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de configuración local
+*.iml
+.idea/
+.vscode/
