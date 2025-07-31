@@ -45,8 +45,9 @@ public class FlujoRegistroTest {
         }
     }
 
+
 @Test
-public void testRegistroConCamposVacios() {
+public void testRegistroExitoso() {
     driver.get("https://magento.softwaretestingboard.com/");
 
     // Manejo de posibles anuncios intermedios
@@ -66,31 +67,34 @@ public void testRegistroConCamposVacios() {
 
     wait.until(ExpectedConditions.urlContains("/customer/account/create/"));
 
-    // Hacer foco breve en los campos obligatorios (simular interacción mínima)
+    // Completar campos obligatorios con datos válidos
     WebElement firstName = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("firstname")));
     WebElement lastName = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("lastname")));
     WebElement email = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email_address")));
     WebElement password = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("password")));
     WebElement confirmPassword = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("password-confirmation")));
 
-    // Simular foco y blur (TAB) en todos los campos
-    firstName.click(); firstName.sendKeys(Keys.TAB);
-    lastName.click(); lastName.sendKeys(Keys.TAB);
-    email.click(); email.sendKeys(Keys.TAB);
-    password.click(); password.sendKeys(Keys.TAB);
-    confirmPassword.click(); confirmPassword.sendKeys(Keys.TAB);
+    firstName.sendKeys("Gabriela");
+    lastName.sendKeys("Hernández");
+    // Para email, usar uno único o con timestamp para evitar colisiones en pruebas repetidas
+    String emailUnico = "gabriela" + System.currentTimeMillis() + "@example.com";
+    email.sendKeys(emailUnico);
+    password.sendKeys("Password123!");
+    confirmPassword.sendKeys("Password123!");
 
-    // Enviar formulario vacío
+    // Click en botón Create an Account
     WebElement createAccountButton = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("button[title='Create an Account']")));
     createAccountButton.click();
 
-    // Esperar mensaje de error por campo vacío
-    WebElement errorField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("firstname-error")));
+    // Esperar mensaje o redirección que confirme registro exitoso
+    // En Magento normalmente aparece un mensaje con clase .message-success o se redirige al dashboard
+    WebElement mensajeExito = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".message-success")));
 
-    Assertions.assertTrue(errorField.isDisplayed(), "❌ El mensaje de error no se muestra para el campo First Name.");
-    System.out.println("✅ Se mostró mensaje de validación para campos vacíos.");
+    Assertions.assertTrue(mensajeExito.isDisplayed(), "❌ No se mostró mensaje de éxito tras el registro.");
+    Assertions.assertTrue(mensajeExito.getText().toLowerCase().contains("thank you for registering"),
+        "❌ El mensaje de éxito no contiene el texto esperado.");
+
+    System.out.println("✅ Registro exitoso confirmado.");
 }
-
-
 
 }
