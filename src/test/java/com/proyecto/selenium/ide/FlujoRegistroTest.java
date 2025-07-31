@@ -47,11 +47,12 @@ public class FlujoRegistroTest {
 
 
 @Test
-public void testRegistroExitoso() {
+public void testInicioSesionConCredencialesIncorrectas() {
     driver.get("https://magento.softwaretestingboard.com/");
 
+    // Manejo de posibles anuncios intermedios
     try {
-        Thread.sleep(3000); // Esperar posible aparición de intersticial
+        Thread.sleep(3000);
         String currentUrl = driver.getCurrentUrl();
         if (currentUrl.contains("google_vignette")) {
             driver.navigate().back();
@@ -60,54 +61,37 @@ public void testRegistroExitoso() {
         e.printStackTrace();
     }
 
-    WebElement createAccountLink = wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Create an Account")));
-    JavascriptExecutor js = (JavascriptExecutor) driver;
-    js.executeScript("arguments[0].click();", createAccountLink);
+    // Ir a Sign In
+    WebElement signInLink = wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Sign In")));
+    signInLink.click();
 
+    wait.until(ExpectedConditions.urlContains("/customer/account/login/"));
 
+    // Completar con credenciales inválidas
+    WebElement email = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email")));
+    WebElement password = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("pass")));
 
-    // Esperar a que la página cargue
-    try {
-        Thread.sleep(2000); // Espera breve para que termine animación/redirección
-    } catch (InterruptedException e) {
-        e.printStackTrace();
-    }
+    email.sendKeys("correo.incorrecto@example.com");
+    password.sendKeys("passwordIncorrecto123!");
 
-    // Verificar nuevamente si se redirigió a un intersticial
-    String currentUrl = driver.getCurrentUrl();
-    if (currentUrl.contains("google_vignette")) {
-        driver.navigate().back(); // Volver atrás
-        createAccountLink = wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Create an Account")));
-        createAccountLink.click(); // Volver a intentar
-    }
+    // Click en botón Sign In
+    WebElement signInButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("send2")));
+    signInButton.click();
 
-    // Confirmar que se abrió la página de creación de cuenta
-    wait.until(ExpectedConditions.urlContains("/customer/account/create/"));
+    // Esperar mensaje de error por credenciales inválidas
+    WebElement errorMessage = wait.until(ExpectedConditions.visibilityOfElementLocated(
+        By.cssSelector("div.message-error div")));
 
-    // Generar email dinámico
-    String email = "gabriela" + System.currentTimeMillis() + "@mailinator.com";
+    // Imprimir mensaje real (útil para debug)
+    System.out.println("Mensaje mostrado: " + errorMessage.getText());
 
-    // Completar formulario de registro
-    driver.findElement(By.id("firstname")).sendKeys("Gabriela");
-    driver.findElement(By.id("lastname")).sendKeys("Test");
-    driver.findElement(By.id("email_address")).sendKeys(email);
-    driver.findElement(By.id("password")).sendKeys("Clave123!");
-    driver.findElement(By.id("password-confirmation")).sendKeys("Clave123!");
-
-    // Enviar formulario
-    WebElement submitButton = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".submit")));
-    submitButton.click();
-
-    // Validar mensaje de éxito
-    WebElement successMsg = wait.until(ExpectedConditions.visibilityOfElementLocated(
-        By.cssSelector(".message-success.success.message")));
-
+    // Validar que el mensaje contiene parte del texto esperado
     Assertions.assertTrue(
-        successMsg.getText().contains("Thank you for registering") ||
-        driver.getCurrentUrl().contains("/customer/account/"),
-        "No se encontró el mensaje de registro exitoso."
+        errorMessage.getText().contains("The account sign-in was incorrect"),
+        "❌ El mensaje de error no contiene el texto esperado."
     );
 
-    System.out.println("✅ Registro exitoso validado correctamente.");
+    System.out.println("✅ Mensaje de error por credenciales incorrectas mostrado correctamente.");
 }
+
 }
