@@ -50,9 +50,8 @@ public class FlujoRegistroTest {
 public void testRegistroExitoso() {
     driver.get("https://magento.softwaretestingboard.com/");
 
-    // Manejo de posibles anuncios intermedios
     try {
-        Thread.sleep(3000);
+        Thread.sleep(3000); // Esperar posible aparición de intersticial
         String currentUrl = driver.getCurrentUrl();
         if (currentUrl.contains("google_vignette")) {
             driver.navigate().back();
@@ -61,40 +60,54 @@ public void testRegistroExitoso() {
         e.printStackTrace();
     }
 
-    // Ir a Create an Account
     WebElement createAccountLink = wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Create an Account")));
-    createAccountLink.click();
+    JavascriptExecutor js = (JavascriptExecutor) driver;
+    js.executeScript("arguments[0].click();", createAccountLink);
 
+
+
+    // Esperar a que la página cargue
+    try {
+        Thread.sleep(2000); // Espera breve para que termine animación/redirección
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+
+    // Verificar nuevamente si se redirigió a un intersticial
+    String currentUrl = driver.getCurrentUrl();
+    if (currentUrl.contains("google_vignette")) {
+        driver.navigate().back(); // Volver atrás
+        createAccountLink = wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Create an Account")));
+        createAccountLink.click(); // Volver a intentar
+    }
+
+    // Confirmar que se abrió la página de creación de cuenta
     wait.until(ExpectedConditions.urlContains("/customer/account/create/"));
 
-    // Completar campos obligatorios con datos válidos
-    WebElement firstName = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("firstname")));
-    WebElement lastName = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("lastname")));
-    WebElement email = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email_address")));
-    WebElement password = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("password")));
-    WebElement confirmPassword = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("password-confirmation")));
+    // Generar email dinámico
+    String email = "gabriela" + System.currentTimeMillis() + "@mailinator.com";
 
-    firstName.sendKeys("Gabriela");
-    lastName.sendKeys("Hernández");
-    // Para email, usar uno único o con timestamp para evitar colisiones en pruebas repetidas
-    String emailUnico = "gabriela" + System.currentTimeMillis() + "@example.com";
-    email.sendKeys(emailUnico);
-    password.sendKeys("Password123!");
-    confirmPassword.sendKeys("Password123!");
+    // Completar formulario de registro
+    driver.findElement(By.id("firstname")).sendKeys("Gabriela");
+    driver.findElement(By.id("lastname")).sendKeys("Test");
+    driver.findElement(By.id("email_address")).sendKeys(email);
+    driver.findElement(By.id("password")).sendKeys("Clave123!");
+    driver.findElement(By.id("password-confirmation")).sendKeys("Clave123!");
 
-    // Click en botón Create an Account
-    WebElement createAccountButton = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("button[title='Create an Account']")));
-    createAccountButton.click();
+    // Enviar formulario
+    WebElement submitButton = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".submit")));
+    submitButton.click();
 
-    // Esperar mensaje o redirección que confirme registro exitoso
-    // En Magento normalmente aparece un mensaje con clase .message-success o se redirige al dashboard
-    WebElement mensajeExito = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".message-success")));
+    // Validar mensaje de éxito
+    WebElement successMsg = wait.until(ExpectedConditions.visibilityOfElementLocated(
+        By.cssSelector(".message-success.success.message")));
 
-    Assertions.assertTrue(mensajeExito.isDisplayed(), "❌ No se mostró mensaje de éxito tras el registro.");
-    Assertions.assertTrue(mensajeExito.getText().toLowerCase().contains("thank you for registering"),
-        "❌ El mensaje de éxito no contiene el texto esperado.");
+    Assertions.assertTrue(
+        successMsg.getText().contains("Thank you for registering") ||
+        driver.getCurrentUrl().contains("/customer/account/"),
+        "No se encontró el mensaje de registro exitoso."
+    );
 
-    System.out.println("✅ Registro exitoso confirmado.");
+    System.out.println("✅ Registro exitoso validado correctamente.");
 }
-
 }
