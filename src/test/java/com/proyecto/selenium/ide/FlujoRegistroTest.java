@@ -47,10 +47,9 @@ public class FlujoRegistroTest {
 
 
 @Test
-public void testInicioSesionConCredencialesIncorrectas() {
+public void testInicioSesionExitoso() {
     driver.get("https://magento.softwaretestingboard.com/");
 
-    // Manejo de posibles anuncios intermedios
     try {
         Thread.sleep(3000);
         String currentUrl = driver.getCurrentUrl();
@@ -61,37 +60,29 @@ public void testInicioSesionConCredencialesIncorrectas() {
         e.printStackTrace();
     }
 
-    // Ir a Sign In
     WebElement signInLink = wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Sign In")));
     signInLink.click();
 
     wait.until(ExpectedConditions.urlContains("/customer/account/login/"));
 
-    // Completar con credenciales inválidas
     WebElement email = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email")));
     WebElement password = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("pass")));
 
-    email.sendKeys("correo.incorrecto@example.com");
-    password.sendKeys("passwordIncorrecto123!");
+    email.sendKeys("cami.ferrando@gmail.com");
+    password.sendKeys("Camiferrando8");
 
-    // Click en botón Sign In
     WebElement signInButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("send2")));
     signInButton.click();
 
-    // Esperar mensaje de error por credenciales inválidas
-    WebElement errorMessage = wait.until(ExpectedConditions.visibilityOfElementLocated(
-        By.cssSelector("div.message-error div")));
+    // Esperar a que aparezca el mensaje y volver a buscar el elemento antes de obtener el texto
+    wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".logged-in")));
+    WebElement welcomeMsg = driver.findElement(By.cssSelector(".logged-in"));
+    String welcomeText = welcomeMsg.getText();
 
-    // Imprimir mensaje real (útil para debug)
-    System.out.println("Mensaje mostrado: " + errorMessage.getText());
+    System.out.println("Mensaje mostrado: " + welcomeText);
 
-    // Validar que el mensaje contiene parte del texto esperado
-    Assertions.assertTrue(
-        errorMessage.getText().contains("The account sign-in was incorrect"),
-        "❌ El mensaje de error no contiene el texto esperado."
-    );
-
-    System.out.println("✅ Mensaje de error por credenciales incorrectas mostrado correctamente.");
+    Assertions.assertTrue(welcomeText.contains("Welcome"), "❌ No se mostró mensaje de bienvenida tras inicio de sesión.");
+    System.out.println("✅ Inicio de sesión exitoso validado correctamente.");
 }
 
 }
