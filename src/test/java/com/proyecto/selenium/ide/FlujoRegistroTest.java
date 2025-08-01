@@ -47,9 +47,10 @@ public class FlujoRegistroTest {
 
 
 @Test
-public void testInicioSesionExitoso() {
+public void testFlujoRegistroYLoginExitoso() {
     driver.get("https://magento.softwaretestingboard.com/");
 
+    // Manejo de posibles anuncios intermedios
     try {
         Thread.sleep(3000);
         String currentUrl = driver.getCurrentUrl();
@@ -60,29 +61,74 @@ public void testInicioSesionExitoso() {
         e.printStackTrace();
     }
 
+    // Hacer clic en "Create an Account"
+    WebElement createAccountLink = wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Create an Account")));
+    createAccountLink.click();
+    wait.until(ExpectedConditions.urlContains("/customer/account/create/"));
+
+    // Generar email único
+    String email = "gabriela" + System.currentTimeMillis() + "@mailinator.com";
+
+    // Llenar formulario de registro
+    driver.findElement(By.id("firstname")).sendKeys("Gabriela");
+    driver.findElement(By.id("lastname")).sendKeys("Test");
+    driver.findElement(By.id("email_address")).sendKeys(email);
+    driver.findElement(By.id("password")).sendKeys("Clave123!");
+    driver.findElement(By.id("password-confirmation")).sendKeys("Clave123!");
+
+    WebElement submitButton = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".submit")));
+    submitButton.click();
+
+    // Validar mensaje de éxito tras registro
+    WebElement successMsg = wait.until(ExpectedConditions.visibilityOfElementLocated(
+        By.cssSelector(".message-success.success.message")));
+    Assertions.assertTrue(successMsg.getText().contains("Thank you for registering"),
+        "❌ No se encontró el mensaje de registro exitoso.");
+
+    System.out.println("✅ Registro exitoso validado correctamente.");
+
+    // Cerrar sesión
+    WebElement accountMenu = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".customer-name")));
+    accountMenu.click();
+
+    WebElement signOutLink = wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Sign Out")));
+    signOutLink.click();
+
+    wait.until(ExpectedConditions.urlContains("/customer/account/logoutSuccess/"));
+
+    // Iniciar sesión con las credenciales recién creadas
     WebElement signInLink = wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Sign In")));
     signInLink.click();
 
     wait.until(ExpectedConditions.urlContains("/customer/account/login/"));
 
-    WebElement email = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email")));
-    WebElement password = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("pass")));
+    WebElement emailInput = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email")));
+    WebElement passInput = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("pass")));
 
-    email.sendKeys("cami.ferrando@gmail.com");
-    password.sendKeys("Camiferrando8");
+    emailInput.sendKeys(email);
+    passInput.sendKeys("Clave123!");
 
     WebElement signInButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("send2")));
     signInButton.click();
 
-    // Esperar a que aparezca el mensaje y volver a buscar el elemento antes de obtener el texto
-    wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".logged-in")));
-    WebElement welcomeMsg = driver.findElement(By.cssSelector(".logged-in"));
-    String welcomeText = welcomeMsg.getText();
+    // Esperar a que cargue la página correctamente
+    try {
+        Thread.sleep(3000);
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
 
-    System.out.println("Mensaje mostrado: " + welcomeText);
+    // Validar mensaje de bienvenida (usuario logueado)
+    WebElement welcomeElement = wait.until(ExpectedConditions.visibilityOfElementLocated(
+        By.cssSelector(".panel.header .greet.welcome")));
+    String welcomeText = welcomeElement.getText();
 
-    Assertions.assertTrue(welcomeText.contains("Welcome"), "❌ No se mostró mensaje de bienvenida tras inicio de sesión.");
-    System.out.println("✅ Inicio de sesión exitoso validado correctamente.");
+    System.out.println("Texto de bienvenida encontrado: " + welcomeText);
+
+    Assertions.assertTrue(welcomeText.contains("Welcome"),
+        "❌ No se mostró mensaje de bienvenida tras login.");
+    System.out.println("✅ Flujo completo de registro e inicio de sesión validado correctamente.");
 }
+
 
 }
