@@ -47,10 +47,9 @@ public class FlujoRegistroTest {
 
 
 @Test
-public void testRecuperacionConCorreoNoRegistrado() {
+public void testRecuperacionConFormatoCorreoInvalido() {
     driver.get("https://magento.softwaretestingboard.com/");
 
-    // Manejo de posibles anuncios
     try {
         Thread.sleep(3000);
         String currentUrl = driver.getCurrentUrl();
@@ -61,33 +60,34 @@ public void testRecuperacionConCorreoNoRegistrado() {
         e.printStackTrace();
     }
 
-    // Ir a "Sign In"
+    // Ir a Sign In
     WebElement signInLink = wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Sign In")));
     signInLink.click();
 
-    // Hacer clic en "Forgot Your Password?"
+    wait.until(ExpectedConditions.urlContains("/customer/account/login/"));
+
+    // Ir a Forgot Password
     WebElement forgotPasswordLink = wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Forgot Your Password?")));
     forgotPasswordLink.click();
 
-    wait.until(ExpectedConditions.urlContains("/customer/account/forgotpassword"));
+    wait.until(ExpectedConditions.urlContains("/customer/account/forgotpassword/"));
 
-    // Ingresar correo no registrado
+    // Ingresar correo mal formado
     WebElement emailField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email_address")));
-    emailField.sendKeys("noexiste123456@mailinator.com");
+    emailField.sendKeys("correoInvalido"); // sin @
 
-    // Click en botón "Reset My Password"
-    WebElement resetButton = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("button.action.submit.primary")));
-    resetButton.click();
+    WebElement submitButton = driver.findElement(By.cssSelector("button.submit"));
 
-    // Esperar mensaje de confirmación
-    WebElement message = wait.until(ExpectedConditions.visibilityOfElementLocated(
-            By.cssSelector("div[data-bind*='prepareMessageForHtml']")));
+    // Usar Javascript para forzar validación del input
+    JavascriptExecutor js = (JavascriptExecutor) driver;
+    boolean esValido = (Boolean) js.executeScript("return arguments[0].checkValidity();", emailField);
 
-    // Validar contenido del mensaje
-    String expectedText = "If there is an account associated with noexiste123456@mailinator.com you will receive an email with a link to reset your password.";
-    Assertions.assertTrue(message.getText().contains(expectedText), "❌ No se mostró el mensaje esperado para correo no registrado.");
+    System.out.println("¿Formato válido? " + esValido);
 
-    System.out.println("✅ Mensaje de recuperación para correo no registrado validado correctamente.");
+    Assertions.assertFalse(esValido, "❌ El campo de correo fue considerado válido pese a tener formato incorrecto.");
+    System.out.println("✅ El campo de correo con formato inválido fue correctamente rechazado por validación HTML5.");
 }
+
+
 
 }
