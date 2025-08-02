@@ -47,10 +47,10 @@ public class FlujoRegistroTest {
 
 
 @Test
-public void testFlujoRegistroYLoginExitoso() {
+public void testRecuperacionConCorreoNoRegistrado() {
     driver.get("https://magento.softwaretestingboard.com/");
 
-    // Manejo de posibles anuncios intermedios
+    // Manejo de posibles anuncios
     try {
         Thread.sleep(3000);
         String currentUrl = driver.getCurrentUrl();
@@ -61,74 +61,33 @@ public void testFlujoRegistroYLoginExitoso() {
         e.printStackTrace();
     }
 
-    // Hacer clic en "Create an Account"
-    WebElement createAccountLink = wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Create an Account")));
-    createAccountLink.click();
-    wait.until(ExpectedConditions.urlContains("/customer/account/create/"));
-
-    // Generar email único
-    String email = "gabriela" + System.currentTimeMillis() + "@mailinator.com";
-
-    // Llenar formulario de registro
-    driver.findElement(By.id("firstname")).sendKeys("Gabriela");
-    driver.findElement(By.id("lastname")).sendKeys("Test");
-    driver.findElement(By.id("email_address")).sendKeys(email);
-    driver.findElement(By.id("password")).sendKeys("Clave123!");
-    driver.findElement(By.id("password-confirmation")).sendKeys("Clave123!");
-
-    WebElement submitButton = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".submit")));
-    submitButton.click();
-
-    // Validar mensaje de éxito tras registro
-    WebElement successMsg = wait.until(ExpectedConditions.visibilityOfElementLocated(
-        By.cssSelector(".message-success.success.message")));
-    Assertions.assertTrue(successMsg.getText().contains("Thank you for registering"),
-        "❌ No se encontró el mensaje de registro exitoso.");
-
-    System.out.println("✅ Registro exitoso validado correctamente.");
-
-    // Cerrar sesión
-    WebElement accountMenu = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".customer-name")));
-    accountMenu.click();
-
-    WebElement signOutLink = wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Sign Out")));
-    signOutLink.click();
-
-    wait.until(ExpectedConditions.urlContains("/customer/account/logoutSuccess/"));
-
-    // Iniciar sesión con las credenciales recién creadas
+    // Ir a "Sign In"
     WebElement signInLink = wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Sign In")));
     signInLink.click();
 
-    wait.until(ExpectedConditions.urlContains("/customer/account/login/"));
+    // Hacer clic en "Forgot Your Password?"
+    WebElement forgotPasswordLink = wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Forgot Your Password?")));
+    forgotPasswordLink.click();
 
-    WebElement emailInput = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email")));
-    WebElement passInput = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("pass")));
+    wait.until(ExpectedConditions.urlContains("/customer/account/forgotpassword"));
 
-    emailInput.sendKeys(email);
-    passInput.sendKeys("Clave123!");
+    // Ingresar correo no registrado
+    WebElement emailField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email_address")));
+    emailField.sendKeys("noexiste123456@mailinator.com");
 
-    WebElement signInButton = wait.until(ExpectedConditions.elementToBeClickable(By.id("send2")));
-    signInButton.click();
+    // Click en botón "Reset My Password"
+    WebElement resetButton = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("button.action.submit.primary")));
+    resetButton.click();
 
-    // Esperar a que cargue la página correctamente
-    try {
-        Thread.sleep(3000);
-    } catch (InterruptedException e) {
-        e.printStackTrace();
-    }
+    // Esperar mensaje de confirmación
+    WebElement message = wait.until(ExpectedConditions.visibilityOfElementLocated(
+            By.cssSelector("div[data-bind*='prepareMessageForHtml']")));
 
-    // Validar mensaje de bienvenida (usuario logueado)
-    WebElement welcomeElement = wait.until(ExpectedConditions.visibilityOfElementLocated(
-        By.cssSelector(".panel.header .greet.welcome")));
-    String welcomeText = welcomeElement.getText();
+    // Validar contenido del mensaje
+    String expectedText = "If there is an account associated with noexiste123456@mailinator.com you will receive an email with a link to reset your password.";
+    Assertions.assertTrue(message.getText().contains(expectedText), "❌ No se mostró el mensaje esperado para correo no registrado.");
 
-    System.out.println("Texto de bienvenida encontrado: " + welcomeText);
-
-    Assertions.assertTrue(welcomeText.contains("Welcome"),
-        "❌ No se mostró mensaje de bienvenida tras login.");
-    System.out.println("✅ Flujo completo de registro e inicio de sesión validado correctamente.");
+    System.out.println("✅ Mensaje de recuperación para correo no registrado validado correctamente.");
 }
-
 
 }
