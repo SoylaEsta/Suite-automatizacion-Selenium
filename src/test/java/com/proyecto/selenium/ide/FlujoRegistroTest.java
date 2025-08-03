@@ -57,13 +57,12 @@ public class FlujoRegistroTest {
 
     /*
      * Este archivo corresponde a la Lección 4 del Proyecto:
-     * - 3 tipos de localizadores: linkText, id, cssSelector
-     * - 2 tipos de espera: WebDriverWait y Thread.sleep
-     * - Validación de campos dinámicos con JavascriptExecutor
-     * - Captura en caso de fallo (Lección 5)
+      - 3 tipos de localizadores: linkText, id, cssSelector
+      - 2 tipos de espera: WebDriverWait y Thread.sleep
+      - Validación de campos dinámicos con JavascriptExecutor
      */
      
-    // Este test está diseñado para pasar, como lo desarrollamos en la Lección 3
+    
     @Test
     public void testRegistroExitoso() {
         try {
@@ -107,7 +106,7 @@ public class FlujoRegistroTest {
             js.executeScript("arguments[0].click();", createAccountLink);
             WebElement registerButton = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("button.submit")));
             registerButton.click();
-            // Corrección: se utiliza el localizador correcto para el mensaje de error del nombre
+            
             WebElement errorMessage = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("firstname-error")));
             Assertions.assertTrue(errorMessage.getText().contains("This is a required field."), "El mensaje de error para el campo de nombre no fue encontrado o es incorrecto.");
         } catch (AssertionError | Exception e) {
@@ -131,7 +130,7 @@ public class FlujoRegistroTest {
 
             driver.findElement(By.cssSelector("button.submit")).click();
 
-            // Corrección: se utiliza el localizador correcto para el mensaje de error general
+            
             WebElement mensajeError = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("div.message-error > div")));
             Assertions.assertTrue(mensajeError.getText().contains("There is already an account with this email address."), "No se mostró el mensaje de error para correo ya registrado.");
 
@@ -162,8 +161,8 @@ public class FlujoRegistroTest {
             boolean campoRequerido = driver.findElements(By.id("email_address-error")).size() > 0;
             System.out.println("¿Campo requerido? " + campoRequerido);
 
-            // Corrección: se invirtió la aserción de `assertFalse` a `assertTrue`
-            Assertions.assertTrue(campoRequerido, "❌ El campo de email no está marcado como obligatorio.");
+            
+            Assertions.assertTrue(campoRequerido, " El campo de email no está marcado como obligatorio.");
         } catch (Exception e) {
             CapturaPantallaUtil.capturar(driver, "fallo_campos_vacios");
             throw e;
@@ -194,7 +193,7 @@ public class FlujoRegistroTest {
 
             System.out.println("¿Formato válido? " + esValido);
 
-            // Corrección: se invirtió la aserción de `assertTrue` a `assertFalse`
+            
             Assertions.assertFalse(esValido, " El campo de correo fue considerado válido pese a tener formato incorrecto.");
             System.out.println(" El campo de correo con formato inválido fue correctamente rechazado por validación HTML5.");
         } catch (AssertionError | Exception e) {
