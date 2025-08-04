@@ -1,0 +1,8 @@
+# Test data for login flow.
+# Format: email,password,expected_outcome
+cami.ferrando@gmail.com,Camiferrando8,success
+usuario.inexistente@gmail.com,PasswordIncorrecta,failure
+gabriela.perez@test.com,Password123!,success
+another.user@test.com,WrongPass,failure
+testuser@test.com,TestPass123,success
+invalid@email.com,InvalidPassword,failure
